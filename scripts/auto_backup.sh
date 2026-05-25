@@ -40,6 +40,18 @@ backup_data() {
         echo -e "${RED}Khong co ket noi Internet${NC}"
     fi
 }
+# =========================
+# AUTO PUSH GITHUB
+# =========================
+
+cd "$BASE_DIR"
+
+git add .
+
+git commit -m "Auto backup $(date +"%Y-%m-%d %H:%M:%S")"
+
+git push origin main
+
 
 # Ham xem danh sach backup
 view_backups() {
