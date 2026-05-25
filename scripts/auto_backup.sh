@@ -8,6 +8,7 @@ NC='\033[0m'
 
 # Duong dan
 BASE_DIR=$(dirname "$(dirname "$(realpath "$0")")")
+
 DATA_DIR="$BASE_DIR/data"
 BACKUP_DIR="$BASE_DIR/backups"
 LOG_DIR="$BASE_DIR/logs"
@@ -17,19 +18,24 @@ LOG_FILE="$LOG_DIR/backup.log"
 mkdir -p "$BACKUP_DIR"
 mkdir -p "$LOG_DIR"
 
-# Ham backup
+# =========================
+# HAM BACKUP
+# =========================
 backup_data() {
+
     TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
     BACKUP_FILE="backup_$TIMESTAMP.tar.gz"
 
+    # Nen du lieu
     tar -czf "$BACKUP_DIR/$BACKUP_FILE" "$DATA_DIR"
 
+    # Ghi log
     echo "$(date) : Backup thanh cong -> $BACKUP_FILE" >> "$LOG_FILE"
 
     echo -e "${GREEN}Backup thanh cong!${NC}"
 
     # Chi giu lai 5 file backup moi nhat
-    ls -t "$BACKUP_DIR"/*.tar.gz | tail -n +6 | xargs -r rm
+    ls -t "$BACKUP_DIR"/*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm
 
     # Kiem tra internet
     ping -c 1 google.com > /dev/null 2>&1
@@ -39,37 +45,47 @@ backup_data() {
     else
         echo -e "${RED}Khong co ket noi Internet${NC}"
     fi
+
+    # =========================
+    # AUTO PUSH GITHUB
+    # =========================
+
+    cd "$BASE_DIR"
+
+    git add .
+
+    git commit -m "Auto backup $(date +"%Y-%m-%d %H:%M:%S")" || true
+
+    git push origin main
 }
+
 # =========================
-# AUTO PUSH GITHUB
+# XEM DANH SACH BACKUP
 # =========================
-
-cd "$BASE_DIR"
-
-git add .
-
-git commit -m "Auto backup $(date +"%Y-%m-%d %H:%M:%S")"
-
-git push origin main
-
-
-# Ham xem danh sach backup
 view_backups() {
     echo -e "${BLUE}Danh sach backup:${NC}"
     ls -lh "$BACKUP_DIR"
 }
 
-# Ham xem log
+# =========================
+# XEM LOG
+# =========================
 view_logs() {
     echo -e "${GREEN}Noi dung log:${NC}"
     cat "$LOG_FILE"
 }
-# Tu dong backup
+
+# =========================
+# TU DONG BACKUP CHO CRONJOB
+# =========================
 if [ "$1" = "auto" ]; then
     backup_data
     exit 0
 fi
-# Menu
+
+# =========================
+# MENU
+# =========================
 while true
 do
     echo "==============================="
